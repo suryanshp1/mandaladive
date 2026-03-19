@@ -5,8 +5,10 @@ import {defineConfig, loadEnv} from 'vite';
 
 export default defineConfig(({mode}) => {
   const env = loadEnv(mode, '.', '');
+  const ghRepo = process.env.GITHUB_REPOSITORY?.split('/')[1];
+  const pagesBase = ghRepo ? `/${ghRepo}/` : '/';
   return {
-    base: mode === 'production' ? '/mandaladive/' : '/',
+    base: mode === 'production' ? pagesBase : '/',
     plugins: [react(), tailwindcss()],
     define: {
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
