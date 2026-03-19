@@ -21,6 +21,7 @@ export default function App() {
     return DEFAULT_STATE;
   });
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     const { zoom, panX, panY, rotationOffset, ...configToSave } = state;
@@ -133,15 +134,39 @@ export default function App() {
     link.click();
   }, []);
 
+  useEffect(() => {
+    const onFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    onFullscreenChange();
+    return () => document.removeEventListener('fullscreenchange', onFullscreenChange);
+  }, []);
+
+  const handleToggleFullscreen = useCallback(async () => {
+    try {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+        return;
+      }
+      await containerRef.current?.requestFullscreen();
+    } catch {
+      // Ignore fullscreen errors (browser/user gesture restrictions)
+    }
+  }, []);
+
   return (
     <div ref={containerRef} className="relative w-full h-screen overflow-hidden bg-[#050505]">
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 p-6 z-10 pointer-events-none flex justify-between items-start">
+      <div
+        className="absolute top-0 left-0 right-0 p-4 md:p-6 z-10 pointer-events-none flex justify-between items-start"
+        style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}
+      >
         <div>
-          <h1 className="text-2xl font-sans font-bold tracking-tighter text-white">
+          <h1 className="text-xl md:text-2xl font-sans font-bold tracking-tighter text-white">
             Mandala<span className="text-purple-500">Dive</span>
           </h1>
-          <p className="text-white/50 font-mono text-xs mt-1 uppercase tracking-widest">
+          <p className="text-white/50 font-mono text-[10px] md:text-xs mt-1 uppercase tracking-widest">
             Create. Zoom. Lose yourself.
           </p>
         </div>
@@ -161,6 +186,8 @@ export default function App() {
         onChange={handleChange}
         onExport={handleExport}
         onReset={handleReset}
+        onToggleFullscreen={handleToggleFullscreen}
+        isFullscreen={isFullscreen}
       />
     </div>
   );

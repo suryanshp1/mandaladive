@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Download, RotateCcw, Share2, Maximize, Minimize } from 'lucide-react';
+import { Settings, Download, RotateCcw, Share2, MoreHorizontal, Maximize2, Minimize2 } from 'lucide-react';
 import { MandalaState, ShapeType } from '../types';
 
 interface ControlsProps {
@@ -7,10 +7,20 @@ interface ControlsProps {
   onChange: (key: keyof MandalaState, value: any) => void;
   onExport: () => void;
   onReset: () => void;
+  onToggleFullscreen: () => void;
+  isFullscreen: boolean;
 }
 
-export const Controls: React.FC<ControlsProps> = ({ state, onChange, onExport, onReset }) => {
+export const Controls: React.FC<ControlsProps> = ({
+  state,
+  onChange,
+  onExport,
+  onReset,
+  onToggleFullscreen,
+  isFullscreen,
+}) => {
   const [isOpen, setIsOpen] = React.useState(true);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
 
   const shapes: ShapeType[] = ['circle', 'triangle', 'square', 'hexagon'];
 
@@ -25,37 +35,104 @@ export const Controls: React.FC<ControlsProps> = ({ state, onChange, onExport, o
   return (
     <>
       {showToast && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm font-medium z-50 animate-in fade-in slide-in-from-top-4">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full text-sm font-medium z-50 animate-in fade-in slide-in-from-top-4 max-w-[calc(100vw-2rem)] text-center">
           Link copied to clipboard!
         </div>
       )}
-      <div className="absolute right-4 top-4 bottom-4 w-80 flex flex-col gap-4 pointer-events-none z-10">
+      <div className="absolute left-4 right-4 bottom-4 md:left-auto md:right-4 md:top-4 md:bottom-4 md:w-80 flex flex-col gap-3 md:gap-4 pointer-events-none z-10">
         {/* Top Bar Actions */}
         <div className="flex justify-end gap-2 pointer-events-auto">
+          {/* Desktop actions */}
+          <button
+            onClick={onToggleFullscreen}
+            className="hidden md:inline-flex p-2.5 md:p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
+            title={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          >
+            {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+          </button>
           <button
             onClick={onReset}
-            className="p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
+            className="hidden md:inline-flex p-2.5 md:p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
             title="Reset"
           >
             <RotateCcw size={20} />
           </button>
           <button
             onClick={handleShare}
-            className="p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
+            className="hidden md:inline-flex p-2.5 md:p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
             title="Share"
           >
             <Share2 size={20} />
           </button>
           <button
             onClick={onExport}
-            className="p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
+            className="hidden md:inline-flex p-2.5 md:p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
             title="Export PNG"
           >
             <Download size={20} />
           </button>
+
+          {/* Mobile overflow menu */}
+          <div className="relative md:hidden">
+            <button
+              onClick={() => setIsMenuOpen((v) => !v)}
+              className="inline-flex p-2.5 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
+              title="More"
+            >
+              <MoreHorizontal size={20} />
+            </button>
+            {isMenuOpen && (
+              <div className="absolute right-0 mt-2 w-44 bg-black/70 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onToggleFullscreen();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-colors"
+                >
+                  {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  {isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onReset();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-colors"
+                >
+                  <RotateCcw size={16} />
+                  Reset
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    handleShare();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-colors"
+                >
+                  <Share2 size={16} />
+                  Copy link
+                </button>
+                <button
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onExport();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-white/90 hover:bg-white/10 transition-colors"
+                >
+                  <Download size={16} />
+                  Export PNG
+                </button>
+              </div>
+            )}
+          </div>
+
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
+            onClick={() => {
+              setIsMenuOpen(false);
+              setIsOpen(!isOpen);
+            }}
+            className="p-2.5 md:p-3 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/10 rounded-xl transition-colors"
             title="Toggle Controls"
           >
             <Settings size={20} />
@@ -64,9 +141,10 @@ export const Controls: React.FC<ControlsProps> = ({ state, onChange, onExport, o
 
       {/* Controls Panel */}
       <div
-        className={`flex-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 overflow-y-auto pointer-events-auto transition-all duration-300 ${
-          isOpen ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-10 pointer-events-none'
+        className={`bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6 overflow-y-auto pointer-events-auto transition-all duration-300 max-h-[60vh] md:max-h-none flex-1 ${
+          isOpen ? 'opacity-100 translate-y-0 md:translate-x-0' : 'opacity-0 translate-y-6 md:translate-x-10 pointer-events-none'
         }`}
+        style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
       >
         <div className="space-y-8">
           {/* Shape Controls */}
